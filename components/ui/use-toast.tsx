@@ -51,9 +51,9 @@ type Action =
       type: ActionType["REMOVE_TOAST"]
       toastId?: ToasterToast["id"]
     }
-
 interface State {
   toasts: ToasterToast[]
+  // Add other state properties if needed
 }
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
@@ -141,7 +141,6 @@ function dispatch(action: Action) {
 }
 
 type Toast = Omit<ToasterToast, "id">
-
 function toast({ ...props }: Toast) {
   const id = genId()
 
@@ -158,14 +157,14 @@ function toast({ ...props }: Toast) {
       ...props,
       id,
       open: true,
-      onOpenChange: (open) => {
+      onOpenChange(open) {
         if (!open) dismiss()
       },
     },
   })
 
   return {
-    id: id,
+    id,
     dismiss,
     update,
   }

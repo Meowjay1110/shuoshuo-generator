@@ -114,8 +114,8 @@ export const reducer = (state: State, action: Action): State => {
             : t
         ),
       }
-    }
-    case "REMOVE_TOAST":
+    }    
+case "REMOVE_TOAST":
       if (action.toastId === undefined) {
         return {
           ...state,

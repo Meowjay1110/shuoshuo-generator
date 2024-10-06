@@ -74,3 +74,21 @@ module.exports = {
   },
   plugins: [require("tailwindcss-animate")],
 }
+
+module.exports = {
+  content: ["./app/**/*.{js,ts,jsx,tsx}"],
+  theme: {
+    extend: {
+      backgroundColor: {
+        primary: 'blue',
+      },
+      color: {
+        primary: 'white',
+      },
+      borderRadius: {
+        full: '50%',
+      },
+    },
+  },
+  plugins: [],
+};

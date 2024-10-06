@@ -82,11 +82,10 @@ export default function Home() {
     const handleDelete = async (index: number) => {
       await handleDeleteCommon(index);
     };
-  
+
     const handleDeleteAll = async () => {
       await handleDeleteCommon(-1);
-    };
-  
+};
     const login = async () => {
       try {
         const response = await fetch('/api/login', {
