@@ -31,19 +31,16 @@ export default function Home() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const sayingData = {
-      date: `"${currentDateTime}"`,
-      content: `"${content}"`,
-      tags: `[${tags.split(',').map(tag => `"${tag.trim()}"`).join(', ')}]`
+      date: currentDateTime,
+      content: content,
+      tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
     }
-    const template = '{"date": $date, "content": $content, "tags": $tags}'
-    const data = JSON.stringify([sayingData])
-
     const response = await fetch('/api/generate', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ template, data }),
+      body: JSON.stringify(sayingData),
     })
     const json = await response.json()
     setResult(json)
@@ -105,7 +102,7 @@ export default function Home() {
                     <p className="font-bold">{new Date(saying.date).toLocaleString()}</p>
                     <p>{saying.content}</p>
                     <p className="text-sm text-gray-500">
-                      标签: {saying.tags.join(', ')}
+                      标签: {Array.isArray(saying.tags) ? saying.tags.join(', ') : '无标签'}
                     </p>
                   </div>
                 ))

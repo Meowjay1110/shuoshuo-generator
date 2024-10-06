@@ -2,31 +2,24 @@ import { NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
 
 export async function POST(req: Request) {
-  const { template, data } = await req.json()
+  const saying = await req.json()
 
   try {
-    const dataArray = JSON.parse(data)
-    const newSayings = dataArray.map((item: any) => {
-      let jsonStr = template
-      for (const [key, value] of Object.entries(item)) {
-        const regex = new RegExp(`\\$${key}`, 'g')
-        jsonStr = jsonStr.replace(regex, JSON.stringify(value))
-      }
-      return JSON.parse(jsonStr)
-    })
+    // Ensure tags is always an array
+    saying.tags = Array.isArray(saying.tags) ? saying.tags : []
 
-    // 获取现有的说说
+    // Get existing sayings
     let existingSayings = await kv.get<any[]>('sayings') || []
 
-    // 合并新的和现有的说说
-    const allSayings = [...existingSayings, ...newSayings]
+    // Add new saying
+    existingSayings.push(saying)
 
-    // 保存合并后的说说
-    await kv.set('sayings', allSayings)
+    // Save updated sayings
+    await kv.set('sayings', existingSayings)
 
-    return NextResponse.json(allSayings)
+    return NextResponse.json(existingSayings)
   } catch (error) {
-    return NextResponse.json({ error: '无效的 JSON 格式或保存失败' }, { status: 400 })
+    return NextResponse.json({ error: '保存说说失败' }, { status: 500 })
   }
 }
 
