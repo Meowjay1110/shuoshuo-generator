@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
 import { Trash2 } from 'lucide-react'
+import { useToast } from "@/components/ui/use-toast"
 
 export default function Home() {
   const [content, setContent] = useState('')
@@ -16,6 +17,7 @@ export default function Home() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [token, setToken] = useState('')
+  const { toast } = useToast()
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token')
@@ -26,18 +28,32 @@ export default function Home() {
   }, [])
 
   const login = async () => {
-    const response = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    })
-    const data = await response.json()
-    if (data.token) {
-      setToken(data.token)
-      localStorage.setItem('token', data.token)
-      fetchSayings(data.token)
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      })
+      const data = await response.json()
+      if (data.token) {
+        setToken(data.token)
+        localStorage.setItem('token', data.token)
+        fetchSayings(data.token)
+        toast({
+          title: "登录成功",
+          description: "欢迎回来！",
+        })
+      } else {
+        throw new Error(data.error || '登录失败')
+      }
+    } catch (error) {
+      toast({
+        title: "登录失败",
+        description: error.message,
+        variant: "destructive",
+      })
     }
   }
 
@@ -45,64 +61,124 @@ export default function Home() {
     setToken('')
     localStorage.removeItem('token')
     setResult([])
+    toast({
+      title: "已登出",
+      description: "您已成功登出。",
+    })
   }
 
   const fetchSayings = async (authToken: string) => {
-    const response = await fetch('/api/generate', {
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-      },
-    })
-    const json = await response.json()
-    setResult(json)
+    try {
+      const response = await fetch('/api/generate', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      })
+      if (!response.ok) {
+        throw new Error('获取说说失败')
+      }
+      const json = await response.json()
+      setResult(json)
+    } catch (error) {
+      toast({
+        title: "获取说说失败",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const currentDate = new Date().toISOString()
-    const sayingData = {
-      date: currentDate,
-      content: content,
-      tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
+    try {
+      const currentDate = new Date().toISOString()
+      const sayingData = {
+        date: currentDate,
+        content: content,
+        tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
+      }
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(sayingData),
+      })
+      if (!response.ok) {
+        throw new Error('添加说说失败')
+      }
+      const json = await response.json()
+      setResult(json)
+      setContent('')
+      setTags('')
+      toast({
+        title: "添加成功",
+        description: "新的说说已成功添加。",
+      })
+    } catch (error) {
+      toast({
+        title: "添加失败",
+        description: error.message,
+        variant: "destructive",
+      })
     }
-    const response = await fetch('/api/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(sayingData),
-    })
-    const json = await response.json()
-    setResult(json)
-    setContent('')
-    setTags('')
   }
 
   const handleDelete = async (index: number) => {
-    const response = await fetch('/api/generate', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ index }),
-    })
-    const json = await response.json()
-    setResult(json)
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ index }),
+      })
+      if (!response.ok) {
+        throw new Error('删除说说失败')
+      }
+      const json = await response.json()
+      setResult(json)
+      toast({
+        title: "删除成功",
+        description: "说说已成功删除。",
+      })
+    } catch (error) {
+      toast({
+        title: "删除失败",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
   }
 
   const handleDeleteAll = async () => {
-    const response = await fetch('/api/generate', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ index: -1 }),
-    })
-    const json = await response.json()
-    setResult(json)
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ index: -1 }),
+      })
+      if (!response.ok) {
+        throw new Error('删除所有说说失败')
+      }
+      const json = await response.json()
+      setResult(json)
+      toast({
+        title: "删除成功",
+        description: "所有说说已成功删除。",
+      })
+    } catch (error) {
+      toast({
+        title: "删除失败",
+        description: error.message,
+        variant: "destructive",
+      })
+    }
   }
 
   if (!token) {

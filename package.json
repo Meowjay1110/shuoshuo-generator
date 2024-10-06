@@ -12,6 +12,7 @@
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-scroll-area": "^1.2.0",
     "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-toast": "^1.2.2",
     "@types/jsonwebtoken": "^9.0.7",
     "@vercel/kv": "^3.0.0",
     "class-variance-authority": "^0.7.0",
