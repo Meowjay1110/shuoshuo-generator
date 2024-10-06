@@ -13,20 +13,53 @@ export default function Home() {
   const [content, setContent] = useState('')
   const [tags, setTags] = useState('')
   const [result, setResult] = useState<any[]>([])
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
+  const [token, setToken] = useState('')
 
   useEffect(() => {
-    fetchSayings()
+    const storedToken = localStorage.getItem('token')
+    if (storedToken) {
+      setToken(storedToken)
+      fetchSayings(storedToken)
+    }
   }, [])
 
-  const fetchSayings = async () => {
-    const response = await fetch('/api/generate')
+  const login = async () => {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, password }),
+    })
+    const data = await response.json()
+    if (data.token) {
+      setToken(data.token)
+      localStorage.setItem('token', data.token)
+      fetchSayings(data.token)
+    }
+  }
+
+  const logout = () => {
+    setToken('')
+    localStorage.removeItem('token')
+    setResult([])
+  }
+
+  const fetchSayings = async (authToken: string) => {
+    const response = await fetch('/api/generate', {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+      },
+    })
     const json = await response.json()
     setResult(json)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const currentDate = new Date().toISOString().replace('T', ' ').substring(0, 19)
+    const currentDate = new Date().toISOString()
     const sayingData = {
       date: currentDate,
       content: content,
@@ -36,6 +69,7 @@ export default function Home() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(sayingData),
     })
@@ -50,6 +84,7 @@ export default function Home() {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ index }),
     })
@@ -62,6 +97,7 @@ export default function Home() {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ index: -1 }),
     })
@@ -69,9 +105,46 @@ export default function Home() {
     setResult(json)
   }
 
+  if (!token) {
+    return (
+      <div className="container mx-auto p-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>登录</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={(e) => { e.preventDefault(); login(); }} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">用户名</Label>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">密码</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full">登录</Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6 text-center">说说生成器</h1>
+      <Button onClick={logout} className="mb-4">登出</Button>
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
