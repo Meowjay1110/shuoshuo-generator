@@ -12,11 +12,12 @@ async function updateJsonFile(sayings: any[]) {
 }
 
 async function readJsonFile() {
+  const JSON_FILE_PATH = process.env.JSON_FILE_PATH || 'public/sayings.json';
   try {
-    const data = await fs.readFile(JSON_FILE_PATH, 'utf-8')
-    return JSON.parse(data)
+    const data = await fs.readFile(JSON_FILE_PATH, 'utf-8');
+    return JSON.parse(data);
   } catch (error) {
-    return []
+    return [];
   }
 }
 
@@ -29,7 +30,15 @@ export async function POST(req: Request) {
   const saying = await req.json()
 
   try {
+    // 数据验证
+    if (!saying.text || typeof saying.text !== 'string') {
+      throw new Error('无效的文本')
+    }
+    if (saying.tags && !Array.isArray(saying.tags)) {
+      throw new Error('标签必须是数组')
+    }
     saying.tags = Array.isArray(saying.tags) ? saying.tags : []
+
     // 转换为北京时间
     const date = new Date(saying.date)
     const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000))
@@ -41,9 +50,10 @@ export async function POST(req: Request) {
 
     // 更新 JSON 文件
     await updateJsonFile(existingSayings)
-
+    
     return NextResponse.json(existingSayings)
   } catch (error) {
+    console.error(error)
     return NextResponse.json({ error: '保存说说失败' }, { status: 500 })
   }
 }
@@ -66,6 +76,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(jsonSayings)
   } catch (error) {
+    console.error(error)
     return NextResponse.json({ error: '获取说说失败' }, { status: 500 })
   }
 }
@@ -94,6 +105,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json(existingSayings)
   } catch (error) {
+    console.error(error)
     return NextResponse.json({ error: '删除说说失败' }, { status: 500 })
   }
 }
