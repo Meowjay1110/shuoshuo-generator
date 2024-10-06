@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
+import { Trash2 } from 'lucide-react'
 
 export default function Home() {
   const [currentDateTime, setCurrentDateTime] = useState('')
@@ -46,6 +47,18 @@ export default function Home() {
     setResult(json)
     setContent('')
     setTags('')
+  }
+
+  const handleDelete = async (index: number) => {
+    const response = await fetch('/api/generate', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ index }),
+    })
+    const json = await response.json()
+    setResult(json)
   }
 
   return (
@@ -98,12 +111,21 @@ export default function Home() {
             <ScrollArea className="h-[400px] w-full rounded-md border p-4">
               {result.length > 0 ? (
                 result.map((saying, index) => (
-                  <div key={index} className="mb-4 p-4 bg-gray-100 rounded-lg">
+                  <div key={index} className="mb-4 p-4 bg-gray-100 rounded-lg relative">
                     <p className="font-bold">{new Date(saying.date).toLocaleString()}</p>
                     <p>{saying.content}</p>
                     <p className="text-sm text-gray-500">
                       标签: {Array.isArray(saying.tags) ? saying.tags.join(', ') : '无标签'}
                     </p>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={() => handleDelete(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      <span className="sr-only">删除</span>
+                    </Button>
                   </div>
                 ))
               ) : (

@@ -5,18 +5,10 @@ export async function POST(req: Request) {
   const saying = await req.json()
 
   try {
-    // Ensure tags is always an array
     saying.tags = Array.isArray(saying.tags) ? saying.tags : []
-
-    // Get existing sayings
     let existingSayings = await kv.get<any[]>('sayings') || []
-
-    // Add new saying
     existingSayings.push(saying)
-
-    // Save updated sayings
     await kv.set('sayings', existingSayings)
-
     return NextResponse.json(existingSayings)
   } catch (error) {
     return NextResponse.json({ error: '保存说说失败' }, { status: 500 })
@@ -29,5 +21,18 @@ export async function GET() {
     return NextResponse.json(sayings)
   } catch (error) {
     return NextResponse.json({ error: '获取说说失败' }, { status: 500 })
+  }
+}
+
+export async function DELETE(req: Request) {
+  const { index } = await req.json()
+
+  try {
+    let existingSayings = await kv.get<any[]>('sayings') || []
+    existingSayings.splice(index, 1)
+    await kv.set('sayings', existingSayings)
+    return NextResponse.json(existingSayings)
+  } catch (error) {
+    return NextResponse.json({ error: '删除说说失败' }, { status: 500 })
   }
 }
