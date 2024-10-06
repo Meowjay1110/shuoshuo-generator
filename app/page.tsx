@@ -10,17 +10,12 @@ import { Label } from "@/components/ui/label"
 import { Trash2 } from 'lucide-react'
 
 export default function Home() {
-  const [currentDateTime, setCurrentDateTime] = useState('')
   const [content, setContent] = useState('')
   const [tags, setTags] = useState('')
   const [result, setResult] = useState<any[]>([])
 
   useEffect(() => {
     fetchSayings()
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date().toISOString())
-    }, 1000)
-    return () => clearInterval(timer)
   }, [])
 
   const fetchSayings = async () => {
@@ -31,8 +26,9 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const currentDate = new Date().toISOString().replace('T', ' ').substring(0, 19)
     const sayingData = {
-      date: currentDateTime,
+      date: currentDate,
       content: content,
       tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
     }
@@ -61,6 +57,18 @@ export default function Home() {
     setResult(json)
   }
 
+  const handleDeleteAll = async () => {
+    const response = await fetch('/api/generate', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ index: -1 }),
+    })
+    const json = await response.json()
+    setResult(json)
+  }
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6 text-center">说说生成器</h1>
@@ -71,15 +79,6 @@ export default function Home() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="date">当前日期和时间</Label>
-                <Input
-                  id="date"
-                  value={new Date(currentDateTime).toLocaleString()}
-                  readOnly
-                  className="bg-gray-100"
-                />
-              </div>
               <div className="space-y-2">
                 <Label htmlFor="content">内容</Label>
                 <Textarea
@@ -105,14 +104,24 @@ export default function Home() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>所有保存的说说</CardTitle>
+            <CardTitle className="flex justify-between items-center">
+              所有保存的说说
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteAll}
+                className="ml-2"
+              >
+                删除所有
+              </Button>
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[400px] w-full rounded-md border p-4">
               {result.length > 0 ? (
                 result.map((saying, index) => (
                   <div key={index} className="mb-4 p-4 bg-gray-100 rounded-lg relative">
-                    <p className="font-bold">{new Date(saying.date).toLocaleString()}</p>
+                    <p className="font-bold">{saying.date}</p>
                     <p>{saying.content}</p>
                     <p className="text-sm text-gray-500">
                       标签: {Array.isArray(saying.tags) ? saying.tags.join(', ') : '无标签'}

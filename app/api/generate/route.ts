@@ -29,7 +29,15 @@ export async function DELETE(req: Request) {
 
   try {
     let existingSayings = await kv.get<any[]>('sayings') || []
-    existingSayings.splice(index, 1)
+    if (index === -1) {
+      // 删除所有内容
+      existingSayings = []
+    } else if (index >= 0 && index < existingSayings.length) {
+      // 删除特定索引的内容
+      existingSayings.splice(index, 1)
+    } else {
+      throw new Error('无效的索引')
+    }
     await kv.set('sayings', existingSayings)
     return NextResponse.json(existingSayings)
   } catch (error) {
