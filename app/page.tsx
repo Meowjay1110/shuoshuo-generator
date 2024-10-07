@@ -51,7 +51,7 @@ export default function Home() {
     } catch (error) {
       toast({
         title: "登录失败",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       })
     }
@@ -82,7 +82,7 @@ export default function Home() {
     } catch (error) {
       toast({
         title: "获取说说失败",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       })
     }
@@ -119,7 +119,7 @@ export default function Home() {
     } catch (error) {
       toast({
         title: "添加失败",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       })
     }
@@ -147,7 +147,7 @@ export default function Home() {
     } catch (error) {
       toast({
         title: "删除失败",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       })
     }
@@ -175,7 +175,7 @@ export default function Home() {
     } catch (error) {
       toast({
         title: "删除失败",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       })
     }
