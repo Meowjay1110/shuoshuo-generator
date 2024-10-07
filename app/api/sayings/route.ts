@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
-import { verifyToken } from '@/lib/auth'
+
+const ACCESS_KEY = process.env.ACCESS_KEY || 'default_access_key'
 
 export async function GET(req: Request) {
-  const token = req.headers.get('Authorization')?.split(' ')[1]
-  if (!verifyToken(token)) {
-    return NextResponse.json({ error: '未授权' }, { status: 401 })
+  const { searchParams } = new URL(req.url)
+  const accessKey = searchParams.get('access_key')
+
+  if (accessKey !== ACCESS_KEY) {
+    return NextResponse.json({ error: '访问被拒绝' }, { status: 403 })
   }
 
   try {
