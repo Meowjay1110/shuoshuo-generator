@@ -44,6 +44,7 @@ export default function Home() {
         toast({
           title: "登录成功",
           description: "欢迎回来！",
+          duration: 3000,
         })
       } else {
         throw new Error(data.error || '登录失败')
@@ -64,6 +65,7 @@ export default function Home() {
     toast({
       title: "已登出",
       description: "您已成功登出。",
+      duration: 3000,
     })
   }
 
@@ -115,6 +117,7 @@ export default function Home() {
       toast({
         title: "添加成功",
         description: "新的说说已成功添加。",
+        duration: 3000,
       })
     } catch (error) {
       toast({
@@ -143,6 +146,7 @@ export default function Home() {
       toast({
         title: "删除成功",
         description: "说说已成功删除。",
+        duration: 3000,
       })
     } catch (error) {
       toast({
@@ -171,6 +175,7 @@ export default function Home() {
       toast({
         title: "删除成功",
         description: "所有说说已成功删除。",
+        duration: 3000,
       })
     } catch (error) {
       toast({
