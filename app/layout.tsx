@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: '说说生成器',
+  title: '说说管理器',
   description: '生成并管理你的说说',
 }
 
