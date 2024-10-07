@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
-import { Trash2 } from 'lucide-react'
+import { Trash2, Copy } from 'lucide-react'
 import { useToast } from "@/components/ui/use-toast"
 
 export default function Home() {
@@ -17,13 +17,18 @@ export default function Home() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [token, setToken] = useState('')
+  const [apiKey, setApiKey] = useState('')
   const { toast } = useToast()
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token')
+    const storedApiKey = localStorage.getItem('apiKey')
     if (storedToken) {
       setToken(storedToken)
       fetchSayings(storedToken)
+    }
+    if (storedApiKey) {
+      setApiKey(storedApiKey)
     }
   }, [])
 
@@ -40,6 +45,13 @@ export default function Home() {
       if (data.token) {
         setToken(data.token)
         localStorage.setItem('token', data.token)
+        if (data.apiKey) {
+          console.log('Received API Key:', data.apiKey)
+          setApiKey(data.apiKey)
+          localStorage.setItem('apiKey', data.apiKey)
+        } else {
+          console.error('No API Key received from server')
+        }
         fetchSayings(data.token)
         toast({
           title: "登录成功",
@@ -50,6 +62,7 @@ export default function Home() {
         throw new Error(data.error || '登录失败')
       }
     } catch (error) {
+      console.error('Login error:', error)
       toast({
         title: "登录失败",
         description: (error as Error).message,
@@ -57,10 +70,11 @@ export default function Home() {
       })
     }
   }
-
   const logout = () => {
     setToken('')
+    setApiKey('')
     localStorage.removeItem('token')
+    localStorage.removeItem('apiKey')
     setResult([])
     toast({
       title: "已登出",
@@ -186,6 +200,23 @@ export default function Home() {
     }
   }
 
+  const copyJsonUrl = () => {
+    const url = `${window.location.origin}/api/sayings?key=${apiKey}`
+    navigator.clipboard.writeText(url).then(() => {
+      toast({
+        title: "复制成功",
+        description: "JSON 访问 URL 已复制到剪贴板。",
+        duration: 3000,
+      })
+    }, () => {
+      toast({
+        title: "复制失败",
+        description: "无法复制 URL，请手动复制。",
+        variant: "destructive",
+      })
+    })
+  }
+
   if (!token) {
     return (
       <div className="container mx-auto p-4">
@@ -224,8 +255,21 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">说说生成器</h1>
-      <Button onClick={logout} className="mb-4">登出</Button>
+      <h1 className="text-3xl font-bold mb-6 text-center">说说管理器</h1>
+      <div className="flex justify-between items-center mb-4">
+        <Button onClick={logout}>登出</Button>
+        <div className="flex items-center">
+          <Input
+            value={`${window.location.origin}/api/sayings?key=${apiKey}`}
+            readOnly
+            className="mr-2"
+          />
+          <Button onClick={copyJsonUrl}>
+            <Copy className="h-4 w-4 mr-2" />
+            复制 JSON URL
+          </Button>
+        </div>
+      </div>
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
