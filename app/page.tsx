@@ -46,11 +46,8 @@ export default function Home() {
         setToken(data.token)
         localStorage.setItem('token', data.token)
         if (data.apiKey) {
-          console.log('Received API Key:', data.apiKey)
           setApiKey(data.apiKey)
           localStorage.setItem('apiKey', data.apiKey)
-        } else {
-          console.error('No API Key received from server')
         }
         fetchSayings(data.token)
         toast({
@@ -62,7 +59,6 @@ export default function Home() {
         throw new Error(data.error || '登录失败')
       }
     } catch (error) {
-      console.error('Login error:', error)
       toast({
         title: "登录失败",
         description: (error as Error).message,
@@ -70,6 +66,7 @@ export default function Home() {
       })
     }
   }
+
   const logout = () => {
     setToken('')
     setApiKey('')
@@ -200,21 +197,37 @@ export default function Home() {
     }
   }
 
-  const copyJsonUrl = () => {
+  const copyJsonUrl = async () => {
     const url = `${window.location.origin}/api/sayings?key=${apiKey}`
-    navigator.clipboard.writeText(url).then(() => {
+    try {
+      await navigator.clipboard.writeText(url)
       toast({
         title: "复制成功",
         description: "JSON 访问 URL 已复制到剪贴板。",
         duration: 3000,
       })
-    }, () => {
+
+      // 测试 API 访问
+      const response = await fetch(url)
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(`API 访问失败: ${errorData.error || response.statusText}`)
+      }
+      const data = await response.json()
+      console.log('API 访问成功:', data)
       toast({
-        title: "复制失败",
-        description: "无法复制 URL，请手动复制。",
+        title: "API 访问成功",
+        description: "成功获取 JSON 数据。",
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error('API 访问错误:', error)
+      toast({
+        title: "API 访问失败",
+        description: (error as Error).message,
         variant: "destructive",
       })
-    })
+    }
   }
 
   if (!token) {
@@ -255,7 +268,7 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">说说管理器</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">说说生成器</h1>
       <div className="flex justify-between items-center mb-4">
         <Button onClick={logout}>登出</Button>
         <div className="flex items-center">
@@ -293,7 +306,7 @@ export default function Home() {
                   id="tags"
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
-                  placeholder="标签1, 标签2, 标签3"
+                  placeholder="标签1,标签2,标签3"
                 />
               </div>
               <Button type="submit" className="w-full">添加说说</Button>
