@@ -1,24 +1,6 @@
 import { NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
 import { verifyToken } from '@/lib/auth'
-import fs from 'fs/promises'
-import path from 'path'
-
-const AUTH_SECRET = process.env.AUTH_SECRET || 'your-secret-key'
-const JSON_FILE_PATH = path.join(process.cwd(), 'public', 'sayings.json')
-
-async function updateJsonFile(sayings: any[]) {
-  await fs.writeFile(JSON_FILE_PATH, JSON.stringify(sayings, null, 2), 'utf-8')
-}
-
-async function readJsonFile() {
-  try {
-    const data = await fs.readFile(JSON_FILE_PATH, 'utf-8')
-    return JSON.parse(data)
-  } catch (error) {
-    return []
-  }
-}
 
 export async function POST(req: Request) {
   const token = req.headers.get('Authorization')?.split(' ')[1]
@@ -39,9 +21,6 @@ export async function POST(req: Request) {
     existingSayings.push(saying)
     await kv.set('sayings', existingSayings)
 
-    // 更新 JSON 文件
-    await updateJsonFile(existingSayings)
-
     return NextResponse.json(existingSayings)
   } catch (error) {
     return NextResponse.json({ error: '保存说说失败' }, { status: 500 })
@@ -55,16 +34,8 @@ export async function GET(req: Request) {
   }
 
   try {
-    const kvSayings = await kv.get<any[]>('sayings') || []
-    const jsonSayings = await readJsonFile()
-
-    // 确保 KV 存储和 JSON 文件同步
-    if (JSON.stringify(kvSayings) !== JSON.stringify(jsonSayings)) {
-      await kv.set('sayings', jsonSayings)
-      await updateJsonFile(jsonSayings)
-    }
-
-    return NextResponse.json(jsonSayings)
+    const sayings = await kv.get<any[]>('sayings') || []
+    return NextResponse.json(sayings)
   } catch (error) {
     return NextResponse.json({ error: '获取说说失败' }, { status: 500 })
   }
@@ -88,9 +59,6 @@ export async function DELETE(req: Request) {
       throw new Error('无效的索引')
     }
     await kv.set('sayings', existingSayings)
-
-    // 更新 JSON 文件
-    await updateJsonFile(existingSayings)
 
     return NextResponse.json(existingSayings)
   } catch (error) {
