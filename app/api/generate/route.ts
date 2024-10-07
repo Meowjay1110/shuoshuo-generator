@@ -23,6 +23,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(existingSayings)
   } catch (error) {
+    console.error('Error saving saying:', error)
     return NextResponse.json({ error: '保存说说失败' }, { status: 500 })
   }
 }
@@ -37,6 +38,7 @@ export async function GET(req: Request) {
     const sayings = await kv.get<any[]>('sayings') || []
     return NextResponse.json(sayings)
   } catch (error) {
+    console.error('Error fetching sayings:', error)
     return NextResponse.json({ error: '获取说说失败' }, { status: 500 })
   }
 }
@@ -62,6 +64,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json(existingSayings)
   } catch (error) {
+    console.error('Error deleting saying:', error)
     return NextResponse.json({ error: '删除说说失败' }, { status: 500 })
   }
 }

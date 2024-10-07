@@ -12,6 +12,7 @@ export async function GET(req: Request) {
     const sayings = await kv.get<any[]>('sayings') || []
     return NextResponse.json(sayings)
   } catch (error) {
+    console.error('Error fetching sayings:', error)
     return NextResponse.json({ error: '获取说说失败' }, { status: 500 })
   }
 }
