@@ -269,13 +269,13 @@ export default function Home() {
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6 text-center">说说生成器</h1>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-4 space-y-4 md:space-y-0">
         <Button onClick={logout}>登出</Button>
-        <div className="flex items-center">
+        <div className="flex items-center w-full md:w-auto">
           <Input
             value={`${window.location.origin}/api/sayings?key=${apiKey}`}
             readOnly
-            className="mr-2"
+            className="mr-2 flex-grow"
           />
           <Button onClick={copyJsonUrl}>
             <Copy className="h-4 w-4 mr-2" />
