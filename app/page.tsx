@@ -254,14 +254,15 @@ export default function Home() {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">说说生成器</h1>
+        <h1 className="text-3xl font-bold">说说管理器</h1>
         <div className="flex items-center space-x-4">
           <Button
             variant="outline"
             size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
           >
-            {theme === "dark" ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
           </Button>
           <Button onClick={logout}>登出</Button>
@@ -346,6 +347,7 @@ export default function Home() {
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
+                        
                         <AlertDialogHeader>
                           <AlertDialogTitle>确认删除</AlertDialogTitle>
                           <AlertDialogDescription>
