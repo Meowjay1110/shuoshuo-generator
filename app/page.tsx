@@ -141,7 +141,7 @@ export default function Home() {
       setResult(prevResult => prevResult.filter(item => item !== newSaying))
       toast({
         title: "添加失败",
-        description: error.message,
+        description: (error as Error).message,
         variant: "destructive",
       })
     }
