@@ -13,11 +13,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useTheme } from "next-themes"
 import {DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuTrigger,} from "@/components/ui/dropdown-menu"
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons"
+import { useCallback } from 'react'
+import { debounce } from 'lodash'
+import { useMemo } from 'react'
 
 export default function Home() {
   const [content, setContent] = useState('')
   const [tags, setTags] = useState('')
   const [result, setResult] = useState<any[]>([])
+  const memoizedResult = useMemo(() => result, [result])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [token, setToken] = useState('')
@@ -72,25 +76,33 @@ export default function Home() {
     })
   }
 
-  const fetchSayings = async (authToken: string) => {
-    try {
-      const response = await fetch('/api/generate', {
+  const debouncedFetchSayings = useCallback(
+    debounce((authToken: string) => {
+      fetch('/api/generate', {
         headers: {
           'Authorization': `Bearer ${authToken}`,
         },
       })
-      if (!response.ok) {
-        throw new Error('获取说说失败')
-      }
-      const json = await response.json()
-      setResult(json)
-    } catch (error) {
-      toast({
-        title: "获取说说失败",
-        description: (error as Error).message,
-        variant: "destructive",
-      })
-    }
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('获取说说失败')
+          }
+          return response.json()
+        })
+        .then(json => setResult(json))
+        .catch(error => {
+          toast({
+            title: "获取说说失败",
+            description: error.message,
+            variant: "destructive",
+          })
+        })
+    }, 300),
+    []
+  )
+
+  const fetchSayings = (authToken: string) => {
+    debouncedFetchSayings(authToken)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
