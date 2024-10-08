@@ -1,20 +1,7 @@
 import { NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
 
-const API_KEY = process.env.API_KEY || 'your-default-api-key'
-
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url)
-  const key = searchParams.get('key')
-
-  console.log('Received API Key:', key)
-  console.log('Expected API Key:', API_KEY)
-
-  if (key !== API_KEY) {
-    console.log('API Key mismatch')
-    return NextResponse.json({ error: '未授权访问' }, { status: 401 })
-  }
-
+export async function GET() {
   try {
     const sayings = await kv.get<any[]>('sayings') || []
     return NextResponse.json(sayings)
