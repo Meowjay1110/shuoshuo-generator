@@ -107,36 +107,41 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const newSaying = {
+      date: new Date().toISOString(),
+      content: content,
+      tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
+    }
+    
+    // 乐观更新
+    setResult(prevResult => [newSaying, ...prevResult])
+    setContent('')
+    setTags('')
+  
     try {
-      const currentDate = new Date().toISOString()
-      const sayingData = {
-        date: currentDate,
-        content: content,
-        tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
-      }
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(sayingData),
+        body: JSON.stringify(newSaying),
       })
       if (!response.ok) {
         throw new Error('添加说说失败')
       }
       const json = await response.json()
       setResult(json)
-      setContent('')
-      setTags('')
       toast({
         title: "添加成功",
         description: "新的说说已成功添加。",
       })
     } catch (error) {
+      // 如果失败，回滚乐观更新
+      setResult(prevResult => prevResult.filter(item => item !== newSaying))
       toast({
         title: "添加失败",
-        description: (error as Error).message,
+        description: error.message,
         variant: "destructive",
       })
     }
