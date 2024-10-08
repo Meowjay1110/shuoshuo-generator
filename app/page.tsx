@@ -130,6 +130,36 @@ export default function Home() {
   }
 
   const handleDelete = async (index: number) => {
+    toast({
+      title: "确认删除",
+      description: "您确定要删除这条说说吗？",
+      action: (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive">删除</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>确认删除</AlertDialogTitle>
+              <AlertDialogDescription>
+                此操作无法撤销。确定要删除这条说说吗？
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={() => confirmDelete(index)}>
+                确认删除
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ),
+      variant: "destructive",
+    })
+  }
+  
+  // 添加 confirmDelete 函数
+  const confirmDelete = async (index: number) => {
     try {
       const response = await fetch('/api/generate', {
         method: 'DELETE',
@@ -157,36 +187,66 @@ export default function Home() {
       })
     }
   }
-
-  const handleDeleteAll = async () => {
-    try {
-      const response = await fetch('/api/generate', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ index: -1 }),
-      })
-      if (!response.ok) {
-        throw new Error('删除所有说说失败')
-      }
-      const json = await response.json()
-      setResult(json)
-      toast({
-        title: "删除成功",
-        description: "所有说说已成功删除。",
-        duration: 3000,
-      })
-    } catch (error) {
-      toast({
-        title: "删除失败",
-        description: (error as Error).message,
-        variant: "destructive",
-      })
-    }
+  
+  // 修改 handleDeleteAll 函数
+  const handleDeleteAll = () => {
+    toast({
+      title: "确认删除所有",
+      description: "您确定要删除所有说说吗？",
+      action: (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive">删除所有</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>确认删除所有说说</AlertDialogTitle>
+              <AlertDialogDescription>
+                此操作无法撤销。确定要删除所有说说吗？
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDeleteAll}>
+                确认删除所有
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ),
+      variant: "destructive",
+    })
   }
 
+  // 添加 confirmDeleteAll 函数
+const confirmDeleteAll = async () => {
+  try {
+    const response = await fetch('/api/generate', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ index: -1 }),
+    })
+    if (!response.ok) {
+      throw new Error('删除所有说说失败')
+    }
+    const json = await response.json()
+    setResult(json)
+    toast({
+      title: "删除成功",
+      description: "所有说说已成功删除。",
+      duration: 3000,
+    })
+  } catch (error) {
+    toast({
+      title: "删除失败",
+      description: (error as Error).message,
+      variant: "destructive",
+    })
+  }
+}
   const copyJsonUrl = async () => {
     const url = `${window.location.origin}/api/sayings`
     try {
