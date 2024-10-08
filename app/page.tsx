@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Trash2, Copy } from 'lucide-react'
 import { useToast } from "@/components/ui/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { useTheme } from "next-themes"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function Home() {
   const [content, setContent] = useState('')
@@ -19,6 +21,7 @@ export default function Home() {
   const [password, setPassword] = useState('')
   const [token, setToken] = useState('')
   const { toast } = useToast()
+  const { theme, setTheme } = useTheme()
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token')
@@ -157,8 +160,7 @@ export default function Home() {
       variant: "destructive",
     })
   }
-  
-  // 添加 confirmDelete 函数
+
   const confirmDelete = async (index: number) => {
     try {
       const response = await fetch('/api/generate', {
@@ -187,8 +189,7 @@ export default function Home() {
       })
     }
   }
-  
-  // 修改 handleDeleteAll 函数
+
   const handleDeleteAll = () => {
     toast({
       title: "确认删除所有",
@@ -218,35 +219,35 @@ export default function Home() {
     })
   }
 
-  // 添加 confirmDeleteAll 函数
-const confirmDeleteAll = async () => {
-  try {
-    const response = await fetch('/api/generate', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ index: -1 }),
-    })
-    if (!response.ok) {
-      throw new Error('删除所有说说失败')
+  const confirmDeleteAll = async () => {
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ index: -1 }),
+      })
+      if (!response.ok) {
+        throw new Error('删除所有说说失败')
+      }
+      const json = await response.json()
+      setResult(json)
+      toast({
+        title: "删除成功",
+        description: "所有说说已成功删除。",
+        duration: 3000,
+      })
+    } catch (error) {
+      toast({
+        title: "删除失败",
+        description: (error as Error).message,
+        variant: "destructive",
+      })
     }
-    const json = await response.json()
-    setResult(json)
-    toast({
-      title: "删除成功",
-      description: "所有说说已成功删除。",
-      duration: 3000,
-    })
-  } catch (error) {
-    toast({
-      title: "删除失败",
-      description: (error as Error).message,
-      variant: "destructive",
-    })
   }
-}
+
   const copyJsonUrl = async () => {
     const url = `${window.location.origin}/api/sayings`
     try {
@@ -320,7 +321,19 @@ const confirmDeleteAll = async () => {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">说说生成器</h1>
-        <Button onClick={logout}>登出</Button>
+        <div className="flex items-center space-x-4">
+          <Select value={theme} onValueChange={setTheme}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="选择主题" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="light">浅色</SelectItem>
+              <SelectItem value="dark">深色</SelectItem>
+              <SelectItem value="system">系统</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={logout}>登出</Button>
+        </div>
       </div>
       <div className="grid md:grid-cols-2 gap-6">
         <Card>
@@ -393,18 +406,18 @@ const confirmDeleteAll = async () => {
             </ScrollArea>
           </CardContent>
         </Card>
-        <div className="mt-6 flex justify-center">
-          <div className="flex items-center">
-            <Input
-              value={`${window.location.origin}/api/sayings`}
-              readOnly
-              className="mr-2 flex-grow"
-            />
-            <Button onClick={copyJsonUrl}>
-              <Copy className="h-4 w-4 mr-2" />
-              复制 JSON URL
-            </Button>
-          </div>
+      </div>
+      <div className="mt-6 flex justify-center">
+        <div className="flex items-center">
+          <Input
+            value={`${window.location.origin}/api/sayings`}
+            readOnly
+            className="mr-2 flex-grow"
+          />
+          <Button onClick={copyJsonUrl}>
+            <Copy className="h-4 w-4 mr-2" />
+            复制 JSON URL
+          </Button>
         </div>
       </div>
     </div>
