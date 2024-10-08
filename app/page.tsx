@@ -285,13 +285,13 @@ export default function Home() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme("light")}>
-          Light
+          浅色
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark
+          深色
         </DropdownMenuItem>
         <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
+          跟随系统设置
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
