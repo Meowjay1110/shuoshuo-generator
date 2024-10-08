@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
-import { Trash2, Copy } from 'lucide-react'
+import { Trash2, Copy, Moon, Sun } from 'lucide-react'
 import { useToast } from "@/components/ui/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useTheme } from "next-themes"
@@ -48,7 +48,6 @@ export default function Home() {
         toast({
           title: "登录成功",
           description: "欢迎回来！",
-          duration: 3000,
         })
       } else {
         throw new Error(data.error || '登录失败')
@@ -69,7 +68,6 @@ export default function Home() {
     toast({
       title: "已登出",
       description: "您已成功登出。",
-      duration: 3000,
     })
   }
 
@@ -121,7 +119,6 @@ export default function Home() {
       toast({
         title: "添加成功",
         description: "新的说说已成功添加。",
-        duration: 3000,
       })
     } catch (error) {
       toast({
@@ -133,35 +130,6 @@ export default function Home() {
   }
 
   const handleDelete = async (index: number) => {
-    toast({
-      title: "确认删除",
-      description: "您确定要删除这条说说吗？",
-      action: (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive">删除</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>确认删除</AlertDialogTitle>
-              <AlertDialogDescription>
-                此操作无法撤销。确定要删除这条说说吗？
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
-              <AlertDialogAction onClick={() => confirmDelete(index)}>
-                确认删除
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ),
-      variant: "destructive",
-    })
-  }
-
-  const confirmDelete = async (index: number) => {
     try {
       const response = await fetch('/api/generate', {
         method: 'DELETE',
@@ -179,7 +147,6 @@ export default function Home() {
       toast({
         title: "删除成功",
         description: "说说已成功删除。",
-        duration: 3000,
       })
     } catch (error) {
       toast({
@@ -190,36 +157,7 @@ export default function Home() {
     }
   }
 
-  const handleDeleteAll = () => {
-    toast({
-      title: "确认删除所有",
-      description: "您确定要删除所有说说吗？",
-      action: (
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="destructive">删除所有</Button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>确认删除所有说说</AlertDialogTitle>
-              <AlertDialogDescription>
-                此操作无法撤销。确定要删除所有说说吗？
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDeleteAll}>
-                确认删除所有
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      ),
-      variant: "destructive",
-    })
-  }
-
-  const confirmDeleteAll = async () => {
+  const handleDeleteAll = async () => {
     try {
       const response = await fetch('/api/generate', {
         method: 'DELETE',
@@ -237,7 +175,6 @@ export default function Home() {
       toast({
         title: "删除成功",
         description: "所有说说已成功删除。",
-        duration: 3000,
       })
     } catch (error) {
       toast({
@@ -255,7 +192,6 @@ export default function Home() {
       toast({
         title: "复制成功",
         description: "JSON 访问 URL 已复制到剪贴板。",
-        duration: 3000,
       })
 
       // 测试 API 访问
@@ -269,7 +205,6 @@ export default function Home() {
       toast({
         title: "API 访问成功",
         description: "成功获取 JSON 数据。",
-        duration: 3000,
       })
     } catch (error) {
       console.error('API 访问错误:', error)
@@ -284,7 +219,7 @@ export default function Home() {
   if (!token) {
     return (
       <div className="container mx-auto p-4">
-        <Card>
+        <Card className="w-full max-w-md mx-auto">
           <CardHeader>
             <CardTitle>登录</CardTitle>
           </CardHeader>
@@ -322,21 +257,19 @@ export default function Home() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">说说生成器</h1>
         <div className="flex items-center space-x-4">
-          <Select value={theme} onValueChange={setTheme}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="选择主题" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="light">浅色</SelectItem>
-              <SelectItem value="dark">深色</SelectItem>
-              <SelectItem value="system">系统</SelectItem>
-            </SelectContent>
-          </Select>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          >
+            {theme === "dark" ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+            <span className="sr-only">Toggle theme</span>
+          </Button>
           <Button onClick={logout}>登出</Button>
         </div>
       </div>
       <div className="grid md:grid-cols-2 gap-6">
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardHeader>
             <CardTitle>添加新说说</CardTitle>
           </CardHeader>
@@ -350,6 +283,7 @@ export default function Home() {
                   onChange={(e) => setContent(e.target.value)}
                   rows={4}
                   required
+                  className="bg-background text-foreground"
                 />
               </div>
               <div className="space-y-2">
@@ -359,49 +293,78 @@ export default function Home() {
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                   placeholder="标签1,标签2,标签3"
+                  className="bg-background text-foreground"
                 />
               </div>
               <Button type="submit" className="w-full">添加说说</Button>
             </form>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card text-card-foreground">
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
               所有保存的说说
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDeleteAll}
-                className="ml-2"
-              >
-                删除所有
-              </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">删除所有</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>确认删除所有说说</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      此操作无法撤销。确定要删除所有说说吗？
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAll}>
+                      确认删除所有
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[400px] w-full rounded-md border p-4">
               {result.length > 0 ? (
                 result.map((saying, index) => (
-                  <div key={index} className="mb-4 p-4 bg-gray-100 rounded-lg relative">
+                  <div key={index} className="mb-4 p-4 bg-muted rounded-lg relative">
                     <p className="font-bold">{saying.date}</p>
                     <p>{saying.content}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       标签: {Array.isArray(saying.tags) ? saying.tags.join(', ') : '无标签'}
                     </p>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2"
-                      onClick={() => handleDelete(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span className="sr-only">删除</span>
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="absolute top-2 right-2"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">删除</span>
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>确认删除</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            此操作无法撤销。确定要删除这条说说吗？
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>取消</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDelete(index)}>
+                            确认删除
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 italic">还没有保存的说说</p>
+                <p className="text-muted-foreground italic">还没有保存的说说</p>
               )}
             </ScrollArea>
           </CardContent>
@@ -412,7 +375,7 @@ export default function Home() {
           <Input
             value={`${window.location.origin}/api/sayings`}
             readOnly
-            className="mr-2 flex-grow"
+            className="mr-2 flex-grow bg-background text-foreground"
           />
           <Button onClick={copyJsonUrl}>
             <Copy className="h-4 w-4 mr-2" />
