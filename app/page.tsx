@@ -317,23 +317,25 @@ export default function Home() {
           <CardHeader>
             <CardTitle className="flex justify-between items-center">
               所有保存的说说
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">删除所有</Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>确认删除所有说说</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    此操作无法撤销。确定要删除所有说说吗？
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">删除所有</Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>确认删除所有说说</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      此操作无法撤销。确定要删除所有说说吗？
                     </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteAll}>
-                    确认删除所有
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>取消</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteAll}>
+                      确认删除所有
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardTitle>
           </CardHeader>
           <CardContent>
