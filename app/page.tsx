@@ -258,50 +258,6 @@ export default function Home() {
     }
   }
 
-  /**
-   * 异步函数：复制JSON访问URL到剪贴板并尝试访问该URL
-   * 
-   * 此函数首先构造一个JSON访问的URL，然后尝试将该URL复制到用户的剪贴板。
-   * 随后，它尝试访问该URL以获取JSON数据。如果访问成功，它会记录数据并显示成功提示。
-   * 如果访问失败，它会捕获错误并显示错误提示。
-   */
-  const copyJsonUrl = async () => {
-    // 构造JSON访问的URL
-    const url = `${window.location.origin}/api/sayings`
-  
-    try {
-      // 尝试将URL复制到剪贴板
-      await navigator.clipboard.writeText(url)
-      toast({
-        title: "复制成功",
-        description: "JSON 访问 URL 已复制到剪贴板。",
-      })
-
-      // 尝试访问JSON API
-      const response = await fetch(url)
-      if (!response.ok) {
-        // 如果响应不成功，则解析错误信息并抛出错误
-        const errorData = await response.json()
-        throw new Error(`API 访问失败: ${errorData.error || response.statusText}`)
-      }
-      // 解析响应的JSON数据
-      const data = await response.json()
-      console.log('API 访问成功:', data)
-      toast({
-        title: "API 访问成功",
-        description: "成功获取 JSON 数据。",
-      })
-    } catch (error: unknown) {
-      // 捕获并处理访问JSON API时的错误
-      console.error('API 访问错误:', error)
-      toast({
-        title: "API 访问失败",
-        description: error instanceof Error ? error.message : "发生未知错误",
-        variant: "destructive",
-      })
-    }
-  }
-
   const checkLoginExpiration = useCallback(() => {
     const loginTime = localStorage.getItem('loginTime')
     if (loginTime) {
@@ -501,19 +457,6 @@ export default function Home() {
             </ScrollArea>
           </CardContent>
         </Card>
-      </div>
-      <div className="mt-6 flex justify-center">
-        <div className="flex items-center">
-          <Input
-            value={`${window.location.origin}/api/sayings`}
-            readOnly
-            className="mr-2 flex-grow bg-background text-foreground"
-          />
-          <Button onClick={copyJsonUrl}>
-            <Copy className="h-4 w-4 mr-2" />
-            复制 JSON URL
-          </Button>
-        </div>
       </div>
     </div>
   )
