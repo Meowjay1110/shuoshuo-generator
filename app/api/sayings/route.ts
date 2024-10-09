@@ -20,7 +20,8 @@ async function getSayings(): Promise<Saying[]> {
   try {
     // 从键值存储中获取说说列表
     const sayings = await kv.get<Saying[]>(SAYINGS_KEY);
-    
+    console.log(getSayings);
+
     // 如果没有找到说说列表，则创建一个新的列表并保存到键值存储中
     if (!sayings) {
       const newSayings: Saying[] = [];
@@ -33,7 +34,8 @@ async function getSayings(): Promise<Saying[]> {
   } catch (error) {
     // 如果发生错误，记录详细的错误日志并返回一个空数组
     console.error('Error getting sayings:', error);
-    return [];
+    // 增加更详细的错误处理逻辑
+    throw new Error('Failed to fetch sayings');
   }
 }
 
@@ -46,6 +48,11 @@ async function getSayings(): Promise<Saying[]> {
  * @returns {Promise<NextResponse>} 返回一个Promise对象，该对象解析为包含说说列表的NextResponse对象
  */
 export async function GET() {
-  const sayings = await getSayings() // 获取说说列表，此处使用了await来等待getSayings函数的异步操作完成
-  return NextResponse.json(sayings) // 将获取到的说说列表通过NextResponse.json方法转换为JSON响应返回
+  try {
+    const sayings = await getSayings(); // 获取说说列表，此处使用了await来等待getSayings函数的异步操作完成
+    return NextResponse.json(sayings); // 将获取到的说说列表通过NextResponse.json方法转换为JSON响应返回
+  } catch (error) {
+    console.error('Error in GET handler:', error);
+    return NextResponse.json({ error: 'Failed to fetch sayings' }, { status: 500 });
+  }
 }
