@@ -25,7 +25,7 @@ async function getSayings(): Promise<Saying[]> {
   }
 }
   
-export async function GET() {
+export async function GET(req: Request) {
   const sayings = await getSayings()
   return NextResponse.json(sayings)
 }
