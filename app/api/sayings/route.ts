@@ -18,25 +18,19 @@ interface Saying {
  */
 async function getSayings(): Promise<Saying[]> {
   try {
-    // 从键值存储中获取说说列表
-    let sayings = await kv.get<Saying[]>(SAYINGS_KEY);
-    console.log(getSayings);
+    let sayings = await kv.get<Saying[]>(SAYINGS_KEY)
 
-// 如果从存储中加载的说说列表为空，则初始化一个新的空数组
-// 这确保了后续的操作可以针对一个存在的数组对象进行，而不是对null或undefined
-  if (!sayings) {
-    sayings = []
-  }
-    // 返回找到的说说列表
-    return sayings;
+    // 如果 KV 中没有数据，则返回空数组
+    if (!sayings) {
+      sayings = []
+    }
+
+    return sayings || []
   } catch (error) {
-    // 如果发生错误，记录详细的错误日志并返回一个空数组
-    console.error('Error getting sayings:', error);
-    // 增加更详细的错误处理逻辑
-    throw new Error('Failed to fetch sayings');
+    console.error('Error getting sayings:', error)
+    return []
   }
 }
-
 /**
  * 异步函数GET，用于获取说说列表
  * 
@@ -47,10 +41,10 @@ async function getSayings(): Promise<Saying[]> {
  */
 export async function GET() {
   try {
-    const sayings = await getSayings(); // 获取说说列表，此处使用了await来等待getSayings函数的异步操作完成
-    return NextResponse.json(sayings); // 将获取到的说说列表通过NextResponse.json方法转换为JSON响应返回
+    const sayings = await getSayings() // 获取说说列表，此处使用了await来等待getSayings函数的异步操作完成
+    return NextResponse.json(sayings) // 将获取到的说说列表通过NextResponse.json方法转换为JSON响应返回
   } catch (error) {
-    console.error('Error in GET handler:', error);
-    return NextResponse.json({ error: 'Failed to fetch sayings' }, { status: 500 });
+    console.error('Error in GET handler:', error)
+    return NextResponse.json({ error: 'Failed to fetch sayings' }, { status: 500 })
   }
 }

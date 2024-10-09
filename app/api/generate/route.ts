@@ -33,6 +33,13 @@ async function saveSayings(sayings: Saying[]): Promise<void> {
   }
 }
 
+async function saveUpdateTime() {
+  try {
+    await kv.set('updateTime', new Date().toISOString())
+  } catch (error) {
+    console.error('Error saving update time:', error)
+  }
+}
 export async function GET() {
   const sayings = await getSayings()
   return NextResponse.json(sayings)
@@ -44,6 +51,7 @@ export async function POST(request: Request) {
     const sayings = await getSayings()
     sayings.unshift(newSaying)
     await saveSayings(sayings)
+    await saveUpdateTime()
     return NextResponse.json(sayings)
   } catch (error) {
     console.error('Error in POST:', error)
@@ -60,6 +68,7 @@ export async function DELETE(request: Request) {
     } else {
       sayings.splice(index, 1)
       await saveSayings(sayings)
+      await saveUpdateTime()
     }
     return NextResponse.json(sayings)
   } catch (error) {
