@@ -1,18 +1,19 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Trash2, Copy } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useTheme } from "next-themes"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoonIcon, SunIcon } from "@radix-ui/react-icons"
+import { MoonIcon, SunIcon, ExclamationTriangleIcon } from "@radix-ui/react-icons"
 
 interface Saying {
   date: string;
@@ -28,6 +29,7 @@ export default function Home() {
   const [token, setToken] = useState('')
   const { toast } = useToast()
   const { setTheme } = useTheme()
+  const [isLoginExpired, setIsLoginExpired] = useState(false)
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token')
@@ -50,6 +52,8 @@ export default function Home() {
       if (data.token) {
         setToken(data.token)
         localStorage.setItem('token', data.token)
+        localStorage.setItem('loginTime', Date.now().toString())
+        setIsLoginExpired(false)
         fetchSayings(data.token)
         toast({
           title: "登录成功",
@@ -221,6 +225,19 @@ export default function Home() {
     }
   }
 
+  const checkLoginExpiration = useCallback(() => {
+    const loginTime = localStorage.getItem('loginTime')
+    if (loginTime) {
+      const expirationTime = new Date(parseInt(loginTime) + 60 * 60 * 1000) // 1 hour
+      if (new Date() > expirationTime) {
+        setIsLoginExpired(true)
+        setToken('')
+        localStorage.removeItem('token')
+        localStorage.removeItem('loginTime')
+      }
+    }
+  }, [])
+
   if (!token) {
     return (
       <div className="container mx-auto p-4">
@@ -259,8 +276,17 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4">
+      {isLoginExpired && (
+        <Alert variant="destructive" className="mb-4">
+          <ExclamationTriangleIcon className="h-4 w-4" />
+          <AlertTitle>登录已过期</AlertTitle>
+          <AlertDescription>
+            您的登录状态已过期，请重新登录。
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">说说管理器</h1>
+        <h1 className="text-3xl font-bold">说说生成器</h1>
         <div className="flex items-center space-x-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -343,11 +369,22 @@ export default function Home() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="h-[400px] w-full rounded-md border p-4">
+            <ScrollArea className="h-[400px] w-full">
               {result.length > 0 ? (
                 result.map((saying, index) => (
                   <div key={index} className="mb-4 p-4 bg-muted rounded-lg relative">
-                    <p className="font-bold">{saying.date}</p>
+                    <p className="font-bold">
+                      {new Date(saying.date).toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false,
+                        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone
+                      })}
+                    </p>
                     <p>{saying.content}</p>
                     <p className="text-sm text-muted-foreground">
                       标签: {Array.isArray(saying.tags) ? saying.tags.join(', ') : '无标签'}
