@@ -19,16 +19,14 @@ interface Saying {
 async function getSayings(): Promise<Saying[]> {
   try {
     // 从键值存储中获取说说列表
-    const sayings = await kv.get<Saying[]>(SAYINGS_KEY);
+    let sayings = await kv.get<Saying[]>(SAYINGS_KEY);
     console.log(getSayings);
 
-    // 如果没有找到说说列表，则创建一个新的列表并保存到键值存储中
-    if (!sayings) {
-      const newSayings: Saying[] = [];
-      await kv.set(SAYINGS_KEY, newSayings);
-      return newSayings;
-    }
-
+// 如果从存储中加载的说说列表为空，则初始化一个新的空数组
+// 这确保了后续的操作可以针对一个存在的数组对象进行，而不是对null或undefined
+  if (!sayings) {
+    sayings = []
+  }
     // 返回找到的说说列表
     return sayings;
   } catch (error) {
