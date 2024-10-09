@@ -12,33 +12,32 @@ interface Saying {
 }
 
 async function getSayings(): Promise<Saying[]> {
-  // First, try to get data from Vercel KV
-  let sayings = await kv.get<Saying[]>(SAYINGS_KEY)
-  
-  // If there's no data in KV, read from the file
-  if (!sayings) {
-    const filePath = path.join(process.cwd(), 'sayings.json')
-    try {
+  try {
+    let sayings = await kv.get<Saying[]>(SAYINGS_KEY)
+    
+    if (!sayings) {
+      const filePath = path.join(process.cwd(), 'sayings.json')
       const data = await fs.readFile(filePath, 'utf8')
       sayings = JSON.parse(data) as Saying[]
-      // Store the data in KV for future quick access
       await kv.set(SAYINGS_KEY, sayings)
-    } catch (error) {
-      console.error('Error reading sayings file:', error)
-      sayings = []
     }
+    
+    return sayings || []
+  } catch (error) {
+    console.error('Error getting sayings:', error)
+    return []
   }
-  
-  return sayings
 }
 
 async function saveSayings(sayings: Saying[]): Promise<void> {
-  // Save to Vercel KV
-  await kv.set(SAYINGS_KEY, sayings)
-  
-  // Also save to the file system for compatibility
-  const filePath = path.join(process.cwd(), 'sayings.json')
-  await fs.writeFile(filePath, JSON.stringify(sayings, null, 2))
+  try {
+    await kv.set(SAYINGS_KEY, sayings)
+    
+    const filePath = path.join(process.cwd(), 'sayings.json')
+    await fs.writeFile(filePath, JSON.stringify(sayings, null, 2))
+  } catch (error) {
+    console.error('Error saving sayings:', error)
+  }
 }
 
 export async function GET() {
@@ -47,21 +46,31 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const newSaying = await request.json() as Saying
-  const sayings = await getSayings()
-  sayings.unshift(newSaying)
-  await saveSayings(sayings)
-  return NextResponse.json(sayings)
+  try {
+    const newSaying = await request.json() as Saying
+    const sayings = await getSayings()
+    sayings.unshift(newSaying)
+    await saveSayings(sayings)
+    return NextResponse.json(sayings)
+  } catch (error) {
+    console.error('Error in POST:', error)
+    return NextResponse.json({ error: 'Failed to add saying' }, { status: 500 })
+  }
 }
 
 export async function DELETE(request: Request) {
-  const { index } = await request.json() as { index: number }
-  const sayings = await getSayings()
-  if (index === -1) {
-    await saveSayings([])
-  } else {
-    sayings.splice(index, 1)
-    await saveSayings(sayings)
+  try {
+    const { index } = await request.json() as { index: number }
+    const sayings = await getSayings()
+    if (index === -1) {
+      await saveSayings([])
+    } else {
+      sayings.splice(index, 1)
+      await saveSayings(sayings)
+    }
+    return NextResponse.json(sayings)
+  } catch (error) {
+    console.error('Error in DELETE:', error)
+    return NextResponse.json({ error: 'Failed to delete saying' }, { status: 500 })
   }
-  return NextResponse.json(sayings)
 }

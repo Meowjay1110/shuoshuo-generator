@@ -7,26 +7,27 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Label } from "@/components/ui/label"
-import { Trash2, Copy} from 'lucide-react'
+import { Trash2, Copy } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useTheme } from "next-themes"
-import {DropdownMenu,DropdownMenuContent,DropdownMenuItem,DropdownMenuTrigger,} from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MoonIcon, SunIcon } from "@radix-ui/react-icons"
-import { useCallback } from 'react'
-import { debounce } from 'lodash'
-import { useMemo } from 'react'
 
+interface Saying {
+  date: string;
+  content: string;
+  tags: string[];
+}
 export default function Home() {
   const [content, setContent] = useState('')
   const [tags, setTags] = useState('')
   const [result, setResult] = useState<any[]>([])
-  const memoizedResult = useMemo(() => result, [result])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [token, setToken] = useState('')
   const { toast } = useToast()
-  const { theme, setTheme } = useTheme()
+  const { setTheme } = useTheme()
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token')
@@ -57,10 +58,10 @@ export default function Home() {
       } else {
         throw new Error(data.error || '登录失败')
       }
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         title: "登录失败",
-        description: (error as Error).message,
+        description: error instanceof Error ? error.message : "发生未知错误",
         variant: "destructive",
       })
     }
@@ -76,48 +77,35 @@ export default function Home() {
     })
   }
 
-  const debouncedFetchSayings = useCallback(
-    debounce((authToken: string) => {
-      fetch('/api/generate', {
+  const fetchSayings = async (authToken: string) => {
+    try {
+      const response = await fetch('/api/generate', {
         headers: {
           'Authorization': `Bearer ${authToken}`,
         },
       })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('获取说说失败')
-          }
-          return response.json()
-        })
-        .then(json => setResult(json))
-        .catch(error => {
-          toast({
-            title: "获取说说失败",
-            description: error.message,
-            variant: "destructive",
-          })
-        })
-    }, 300),
-    []
-  )
-
-  const fetchSayings = (authToken: string) => {
-    debouncedFetchSayings(authToken)
+      if (!response.ok) {
+        throw new Error('获取说说失败')
+      }
+      const json = await response.json()
+      setResult(json)
+    } catch (error: unknown) {
+      toast({
+        title: "获取说说失败",
+        description: error instanceof Error ? error.message : "发生未知错误",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const newSaying = {
+    const newSaying: Saying = {
       date: new Date().toISOString(),
       content: content,
       tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
     }
     
-    // 乐观更新
-    setResult(prevResult => [newSaying, ...prevResult])
-    setContent('')
-    setTags('')
-  
     try {
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -132,16 +120,16 @@ export default function Home() {
       }
       const json = await response.json()
       setResult(json)
+      setContent('')
+      setTags('')
       toast({
         title: "添加成功",
         description: "新的说说已成功添加。",
       })
-    } catch (error) {
-      // 如果失败，回滚乐观更新
-      setResult(prevResult => prevResult.filter(item => item !== newSaying))
+    } catch (error: unknown) {
       toast({
         title: "添加失败",
-        description: (error as Error).message,
+        description: error instanceof Error ? error.message : "发生未知错误",
         variant: "destructive",
       })
     }
@@ -166,10 +154,10 @@ export default function Home() {
         title: "删除成功",
         description: "说说已成功删除。",
       })
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         title: "删除失败",
-        description: (error as Error).message,
+        description: error instanceof Error ? error.message : "发生未知错误",
         variant: "destructive",
       })
     }
@@ -194,10 +182,10 @@ export default function Home() {
         title: "删除成功",
         description: "所有说说已成功删除。",
       })
-    } catch (error) {
+    } catch (error: unknown) {
       toast({
         title: "删除失败",
-        description: (error as Error).message,
+        description: error instanceof Error ? error.message : "发生未知错误",
         variant: "destructive",
       })
     }
@@ -212,7 +200,6 @@ export default function Home() {
         description: "JSON 访问 URL 已复制到剪贴板。",
       })
 
-      // 测试 API 访问
       const response = await fetch(url)
       if (!response.ok) {
         const errorData = await response.json()
@@ -224,11 +211,11 @@ export default function Home() {
         title: "API 访问成功",
         description: "成功获取 JSON 数据。",
       })
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('API 访问错误:', error)
       toast({
         title: "API 访问失败",
-        description: (error as Error).message,
+        description: error instanceof Error ? error.message : "发生未知错误",
         variant: "destructive",
       })
     }

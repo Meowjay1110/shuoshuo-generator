@@ -5,25 +5,28 @@ import path from 'path'
 
 const SAYINGS_KEY = 'sayings'
 
-async function getSayings() {
-  // 首先尝试从 Vercel KV 获取数据
-  let sayings = await kv.get(SAYINGS_KEY)
-  
-  // 如果 KV 中没有数据，则从文件中读取
-  if (!sayings) {
-    const filePath = path.join(process.cwd(), 'sayings.json')
-    try {
+interface Saying {
+  date: string;
+  content: string;
+  tags: string[];
+}
+
+async function getSayings(): Promise<Saying[]> {
+  try {
+    let sayings = await kv.get<Saying[]>(SAYINGS_KEY)
+    
+    if (!sayings) {
+      const filePath = path.join(process.cwd(), 'sayings.json')
       const data = await fs.readFile(filePath, 'utf8')
-      sayings = JSON.parse(data)
-      // 将数据存入 KV 以便将来快速访问
+      sayings = JSON.parse(data) as Saying[]
       await kv.set(SAYINGS_KEY, sayings)
-    } catch (error) {
-      console.error('Error reading sayings file:', error)
-      sayings = []
     }
+    
+    return sayings || []
+  } catch (error) {
+    console.error('Error getting sayings:', error)
+    return []
   }
-  
-  return sayings
 }
 
 export async function GET() {
