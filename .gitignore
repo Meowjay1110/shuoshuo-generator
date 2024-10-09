@@ -37,6 +37,3 @@ next-env.d.ts
 
 # vscode
 .vscode/
-
-.vercel
-.env*.local
