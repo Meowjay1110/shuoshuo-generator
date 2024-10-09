@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
-import fs from 'fs/promises'
-import path from 'path'
 
 const SAYINGS_KEY = 'sayings'
 
@@ -14,14 +12,12 @@ interface Saying {
 async function getSayings(): Promise<Saying[]> {
   try {
     let sayings = await kv.get<Saying[]>(SAYINGS_KEY)
-    
+
+    // 如果 KV 中没有数据，则返回空数组
     if (!sayings) {
-      const filePath = path.join(process.cwd(), 'sayings.json')
-      const data = await fs.readFile(filePath, 'utf8')
-      sayings = JSON.parse(data) as Saying[]
-      await kv.set(SAYINGS_KEY, sayings)
+      sayings = []
     }
-    
+
     return sayings || []
   } catch (error) {
     console.error('Error getting sayings:', error)
@@ -32,9 +28,6 @@ async function getSayings(): Promise<Saying[]> {
 async function saveSayings(sayings: Saying[]): Promise<void> {
   try {
     await kv.set(SAYINGS_KEY, sayings)
-    
-    const filePath = path.join(process.cwd(), 'sayings.json')
-    await fs.writeFile(filePath, JSON.stringify(sayings, null, 2))
   } catch (error) {
     console.error('Error saving sayings:', error)
   }
