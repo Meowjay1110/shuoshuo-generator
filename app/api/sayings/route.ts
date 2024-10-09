@@ -10,29 +10,30 @@ interface Saying {
 }
 
 /**
- * 异步获取格言列表
+ * 异步获取说说列表
  * 
- * 此函数尝试从键值存储中加载格言列表如果列表不存在，则创建一个新的列表并保存到存储中
+ * 此函数尝试从键值存储中加载说说列表。如果列表不存在，则创建一个新的列表并保存到存储中。
  * 
- * @returns {Promise<Saying[]>} 返回一个承诺，该承诺解析为格言数组
+ * @returns {Promise<Saying[]>} 返回一个承诺，该承诺解析为说说数组
  */
 async function getSayings(): Promise<Saying[]> {
   try {
-    // 从键值存储中获取格言列表
-    let sayings = await kv.get<Saying[]>(SAYINGS_KEY)
+    // 从键值存储中获取说说列表
+    const sayings = await kv.get<Saying[]>(SAYINGS_KEY);
     
-    // 如果没有找到格言列表，则创建一个新的列表并保存到键值存储中
+    // 如果没有找到说说列表，则创建一个新的列表并保存到键值存储中
     if (!sayings) {
-      sayings = [] as Saying[]
-      await kv.set(SAYINGS_KEY, sayings)
+      const newSayings: Saying[] = [];
+      await kv.set(SAYINGS_KEY, newSayings);
+      return newSayings;
     }
 
-    // 返回找到的格言列表
-    return sayings || []
+    // 返回找到的说说列表
+    return sayings;
   } catch (error) {
-    // 如果发生错误，打印错误信息并返回一个空数组
-    console.error('Error getting sayings:', error)
-    return []
+    // 如果发生错误，记录详细的错误日志并返回一个空数组
+    console.error('Error getting sayings:', error);
+    return [];
   }
 }
 
