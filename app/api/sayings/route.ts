@@ -1,7 +1,5 @@
 import { NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
-import fs from 'fs/promises'
-import path from 'path'
 
 const SAYINGS_KEY = 'sayings'
 
