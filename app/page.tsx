@@ -286,7 +286,7 @@ export default function Home() {
         </Alert>
       )}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">说说生成器</h1>
+        <h1 className="text-3xl font-bold">说说管理器</h1>
         <div className="flex items-center space-x-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
