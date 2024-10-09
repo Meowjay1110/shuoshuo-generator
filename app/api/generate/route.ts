@@ -1,70 +1,67 @@
 import { NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
-import { verifyToken } from '@/lib/auth'
+import fs from 'fs/promises'
+import path from 'path'
 
-export async function POST(req: Request) {
-  const token = req.headers.get('Authorization')?.split(' ')[1]
-  if (!verifyToken(token)) {
-    return NextResponse.json({ error: '未授权' }, { status: 401 })
-  }
+const SAYINGS_KEY = 'sayings'
 
-  const saying = await req.json()
-
-  try {
-    saying.tags = Array.isArray(saying.tags) ? saying.tags : []
-    // 转换为北京时间
-    const date = new Date(saying.date)
-    const beijingTime = new Date(date.getTime() + (8 * 60 * 60 * 1000))
-    saying.date = beijingTime.toISOString().replace('T', ' ').substring(0, 19)
-
-    let existingSayings = await kv.get<any[]>('sayings') || []
-    existingSayings.push(saying)
-    await kv.set('sayings', existingSayings)
-
-    return NextResponse.json(existingSayings)
-  } catch (error) {
-    console.error('Error saving saying:', error)
-    return NextResponse.json({ error: '保存说说失败' }, { status: 500 })
-  }
+interface Saying {
+  date: string;
+  content: string;
+  tags: string[];
 }
 
-export async function GET(req: Request) {
-  const token = req.headers.get('Authorization')?.split(' ')[1]
-  if (!verifyToken(token)) {
-    return NextResponse.json({ error: '未授权' }, { status: 401 })
-  }
-
-  try {
-    const sayings = await kv.get<any[]>('sayings') || []
-    return NextResponse.json(sayings)
-  } catch (error) {
-    console.error('Error fetching sayings:', error)
-    return NextResponse.json({ error: '获取说说失败' }, { status: 500 })
-  }
-}
-
-export async function DELETE(req: Request) {
-  const token = req.headers.get('Authorization')?.split(' ')[1]
-  if (!verifyToken(token)) {
-    return NextResponse.json({ error: '未授权' }, { status: 401 })
-  }
-
-  const { index } = await req.json()
-
-  try {
-    let existingSayings = await kv.get<any[]>('sayings') || []
-    if (index === -1) {
-      existingSayings = []
-    } else if (index >= 0 && index < existingSayings.length) {
-      existingSayings.splice(index, 1)
-    } else {
-      throw new Error('无效的索引')
+async function getSayings(): Promise<Saying[]> {
+  // First, try to get data from Vercel KV
+  let sayings = await kv.get<Saying[]>(SAYINGS_KEY)
+  
+  // If there's no data in KV, read from the file
+  if (!sayings) {
+    const filePath = path.join(process.cwd(), 'sayings.json')
+    try {
+      const data = await fs.readFile(filePath, 'utf8')
+      sayings = JSON.parse(data) as Saying[]
+      // Store the data in KV for future quick access
+      await kv.set(SAYINGS_KEY, sayings)
+    } catch (error) {
+      console.error('Error reading sayings file:', error)
+      sayings = []
     }
-    await kv.set('sayings', existingSayings)
-
-    return NextResponse.json(existingSayings)
-  } catch (error) {
-    console.error('Error deleting saying:', error)
-    return NextResponse.json({ error: '删除说说失败' }, { status: 500 })
   }
+  
+  return sayings
+}
+
+async function saveSayings(sayings: Saying[]): Promise<void> {
+  // Save to Vercel KV
+  await kv.set(SAYINGS_KEY, sayings)
+  
+  // Also save to the file system for compatibility
+  const filePath = path.join(process.cwd(), 'sayings.json')
+  await fs.writeFile(filePath, JSON.stringify(sayings, null, 2))
+}
+
+export async function GET() {
+  const sayings = await getSayings()
+  return NextResponse.json(sayings)
+}
+
+export async function POST(request: Request) {
+  const newSaying = await request.json() as Saying
+  const sayings = await getSayings()
+  sayings.unshift(newSaying)
+  await saveSayings(sayings)
+  return NextResponse.json(sayings)
+}
+
+export async function DELETE(request: Request) {
+  const { index } = await request.json() as { index: number }
+  const sayings = await getSayings()
+  if (index === -1) {
+    await saveSayings([])
+  } else {
+    sayings.splice(index, 1)
+    await saveSayings(sayings)
+  }
+  return NextResponse.json(sayings)
 }
