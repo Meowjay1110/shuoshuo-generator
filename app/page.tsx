@@ -39,8 +39,17 @@ export default function Home() {
     }
   }, [])
 
+  /**
+   * 异步登录函数，用于向后端API发送登录请求，并处理登录响应
+   * 
+   * 尝试通过POST请求向'/api/login'发送用户名和密码，接收服务器响应
+   * 如果服务器返回有效的token，则将token存储到本地存储，并记录登录时间
+   * 同时，更新登录状态，调用fetchSayings函数获取格言数据，并显示登录成功的提示
+   * 如果登录失败，捕获错误并显示登录失败的提示
+   */
   const login = async () => {
     try {
+      // 发送登录请求，包括用户名和密码
       const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
@@ -48,7 +57,9 @@ export default function Home() {
         },
         body: JSON.stringify({ username, password }),
       })
+      // 解析服务器返回的JSON数据
       const data = await response.json()
+      // 如果数据中包含token，表示登录成功
       if (data.token) {
         setToken(data.token)
         localStorage.setItem('token', data.token)
@@ -60,9 +71,11 @@ export default function Home() {
           description: "欢迎回来！",
         })
       } else {
+        // 如果数据中没有token，抛出错误，处理登录失败的情况
         throw new Error(data.error || '登录失败')
       }
     } catch (error: unknown) {
+      // 捕获并处理登录过程中的任何错误
       toast({
         title: "登录失败",
         description: error instanceof Error ? error.message : "发生未知错误",
@@ -71,29 +84,44 @@ export default function Home() {
     }
   }
 
+  /**
+   * 执行登出操作
+   * 
+   * 此函数负责清除用户会话，包括移除存储的令牌和结果数据，并显示登出通知
+   * 它通过清除本地存储的令牌和结果数据来实现登出，并通过toast通知用户已成功登出
+   */
   const logout = () => {
-    setToken('')
-    localStorage.removeItem('token')
-    setResult([])
+    setToken('') // 清除令牌
+    localStorage.removeItem('token') // 从本地存储中移除令牌
+    setResult([]) // 重置结果数据
     toast({
       title: "已登出",
       description: "您已成功登出。",
-    })
+    }) // 显示登出通知
   }
 
+  /**
+   * 异步获取说说
+   * @param authToken 用户的认证令牌，用于授权
+   */
   const fetchSayings = async (authToken: string) => {
     try {
+      // 向生成说说的API发送请求
       const response = await fetch('/api/generate', {
         headers: {
           'Authorization': `Bearer ${authToken}`,
         },
       })
+      // 检查响应状态
       if (!response.ok) {
         throw new Error('获取说说失败')
       }
+      // 解析响应的JSON数据
       const json = await response.json()
+      // 更新结果状态
       setResult(json)
     } catch (error: unknown) {
+      // 显示错误通知
       toast({
         title: "获取说说失败",
         description: error instanceof Error ? error.message : "发生未知错误",
@@ -102,15 +130,23 @@ export default function Home() {
     }
   }
 
+  /**
+   * 处理表单提交的异步函数
+   * @param {React.FormEvent} e - 表单提交事件
+   */
   const handleSubmit = async (e: React.FormEvent) => {
+    // 阻止表单的默认提交行为
     e.preventDefault()
+
+    // 创建一个新的说说对象，包含当前日期、内容和标签
     const newSaying: Saying = {
       date: new Date().toISOString(),
       content: content,
       tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
     }
-    
+
     try {
+      // 发送POST请求到API以生成新的说说
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
@@ -119,10 +155,16 @@ export default function Home() {
         },
         body: JSON.stringify(newSaying),
       })
+
+      // 如果响应不成功，则抛出错误
       if (!response.ok) {
         throw new Error('添加说说失败')
       }
+
+      // 解析响应的JSON数据
       const json = await response.json()
+
+      // 更新状态，清空内容和标签，显示成功提示
       setResult(json)
       setContent('')
       setTags('')
@@ -131,6 +173,7 @@ export default function Home() {
         description: "新的说说已成功添加。",
       })
     } catch (error: unknown) {
+      // 发生错误时，显示失败提示
       toast({
         title: "添加失败",
         description: error instanceof Error ? error.message : "发生未知错误",
@@ -139,8 +182,13 @@ export default function Home() {
     }
   }
 
+  /**
+   * 异步处理删除请求
+   * @param index 要删除的说说的索引
+   */
   const handleDelete = async (index: number) => {
     try {
+      // 发送DELETE请求到服务器，请求删除指定索引的说说
       const response = await fetch('/api/generate', {
         method: 'DELETE',
         headers: {
@@ -149,16 +197,20 @@ export default function Home() {
         },
         body: JSON.stringify({ index }),
       })
+      // 如果响应状态不是OK，抛出错误
       if (!response.ok) {
         throw new Error('删除说说失败')
       }
+      // 解析响应JSON，并更新结果
       const json = await response.json()
       setResult(json)
+      // 显示删除成功的提示
       toast({
         title: "删除成功",
         description: "说说已成功删除。",
       })
     } catch (error: unknown) {
+      // 显示删除失败的提示，包含错误信息
       toast({
         title: "删除失败",
         description: error instanceof Error ? error.message : "发生未知错误",
@@ -167,8 +219,15 @@ export default function Home() {
     }
   }
 
+  /**
+   * 异步函数，用于删除所有说说
+   * 该函数通过发送DELETE请求到'/api/generate'端点来删除所有说说
+   * 如果删除成功，更新结果状态并显示成功提示
+   * 如果删除失败，显示错误提示
+   */
   const handleDeleteAll = async () => {
     try {
+      // 发送DELETE请求，附带Content-Type和Authorization头，以及一个表示删除所有说说的特殊索引
       const response = await fetch('/api/generate', {
         method: 'DELETE',
         headers: {
@@ -177,16 +236,20 @@ export default function Home() {
         },
         body: JSON.stringify({ index: -1 }),
       })
+      // 如果服务器响应不是OK，则抛出错误
       if (!response.ok) {
         throw new Error('删除所有说说失败')
       }
+      // 解析服务器响应的JSON，并更新结果状态
       const json = await response.json()
       setResult(json)
+      // 显示删除成功的提示
       toast({
         title: "删除成功",
         description: "所有说说已成功删除。",
       })
     } catch (error: unknown) {
+      // 显示删除失败的提示，包含错误信息
       toast({
         title: "删除失败",
         description: error instanceof Error ? error.message : "发生未知错误",
@@ -195,20 +258,33 @@ export default function Home() {
     }
   }
 
+  /**
+   * 异步函数：复制JSON访问URL到剪贴板并尝试访问该URL
+   * 
+   * 此函数首先构造一个JSON访问的URL，然后尝试将该URL复制到用户的剪贴板。
+   * 随后，它尝试访问该URL以获取JSON数据。如果访问成功，它会记录数据并显示成功提示。
+   * 如果访问失败，它会捕获错误并显示错误提示。
+   */
   const copyJsonUrl = async () => {
+    // 构造JSON访问的URL
     const url = `${window.location.origin}/api/sayings`
+  
     try {
+      // 尝试将URL复制到剪贴板
       await navigator.clipboard.writeText(url)
       toast({
         title: "复制成功",
         description: "JSON 访问 URL 已复制到剪贴板。",
       })
 
+      // 尝试访问JSON API
       const response = await fetch(url)
       if (!response.ok) {
+        // 如果响应不成功，则解析错误信息并抛出错误
         const errorData = await response.json()
         throw new Error(`API 访问失败: ${errorData.error || response.statusText}`)
       }
+      // 解析响应的JSON数据
       const data = await response.json()
       console.log('API 访问成功:', data)
       toast({
@@ -216,6 +292,7 @@ export default function Home() {
         description: "成功获取 JSON 数据。",
       })
     } catch (error: unknown) {
+      // 捕获并处理访问JSON API时的错误
       console.error('API 访问错误:', error)
       toast({
         title: "API 访问失败",
