@@ -27,7 +27,14 @@ async function getSayings(): Promise<Saying[]> {
   
 export const revalidate = 0
 
-export async function GET(request: Request) {
+export async function GET() {
   const sayings = await getSayings()
-  return NextResponse.json(sayings)
+  return NextResponse.json(sayings, {
+    status: 200
+    ,headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    }
+  })
 }
